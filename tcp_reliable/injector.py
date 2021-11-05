@@ -1,9 +1,7 @@
 import random
 import hashlib
 
-FLAG=[0,1,1,1,1,0]
-MESSAGE_SLEEP=0
-MESSAGE_SIZE=10
+
 
 def genHashNumber(num):
     return int(hashlib.sha256(str(num).encode()).hexdigest(), base=16)
@@ -14,12 +12,9 @@ def generateRandomData(size):
         rand.append(random.randint(0, 1))
     return rand
 
-
-BUFFER_SIZE = 8
-
 class Injector:
     
-    def __init__(self):
+    def __init__(self, BUFFER_SIZE):
         self.allSecrets = []
 
         self.bufferSize = BUFFER_SIZE
@@ -94,11 +89,11 @@ class Injector:
             sendBit = 0
         self.addCheck(sendIdx, seq, load)
         if sendBit == pktTimestamp%2:
-            print("seq:", seq, "timestamp:", pktTimestamp, "bit:", sendBit)
+            # print("seq:", seq, "timestamp:", pktTimestamp, "bit:", sendBit)
             return False, None
     
         self.lastTimestamp = pktTimestamp +1
-        print("seq:", seq, "timestamp:", pktTimestamp+1, "bit:", sendBit)
+        # print("seq:", seq, "timestamp:", pktTimestamp+1, "bit:", sendBit)
         return True, pktTimestamp+1
     
     def ackPkt(self, ackSeq):
@@ -108,7 +103,7 @@ class Injector:
                     seq = val[0]
                     seqLoad = val[1]
                     if seqLoad <= ackSeq:
-                        print("******",len(self.allSecrets)+1,"***** seq",seq,"*****","idx",idx)
+                        # print("******",len(self.allSecrets)+1,"***** seq",seq,"*****","idx",idx)
                         self.validateBufferIdx(idx)
                         break
 

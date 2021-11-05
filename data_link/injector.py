@@ -1,41 +1,12 @@
 import random
 
-FLAG=[0,1,1,1,1,0]
-MESSAGE_SLEEP=0
-MESSAGE_SIZE=10
-
-def bitBuffer(message):
-    count = 0
-    addZero = []
-    for idx in range(len(message)):
-        num = message[idx]
-        if count == 3 and num == 1:
-            addZero.append(idx)
-            count = 0 
-        if num == 1:
-            count += 1
-        else:
-            count = 0
-    addZero.reverse()
-    for idx in addZero:
-        message.insert(idx,0)
-
-def generateRandomData(size):
-    rand = []
-    for _ in range(size):
-        rand.append(random.randint(0, 1))
-    return rand
-
-def generateRandomDataWithFlag(size):
-    message = generateRandomData(size)
-    bitBuffer(message)
-    newMessage = FLAG + message + FLAG
-    return newMessage
-
 class Injector:
-    def __init__(self):
+    def __init__(self, FLAG, MESSAGE_SIZE):
+        self.FLAG = FLAG
+        self.MESSAGE_SIZE = MESSAGE_SIZE
+        self.MESSAGE_SLEEP = 0
         self.sentData = []
-        self.message = generateRandomDataWithFlag(MESSAGE_SIZE)
+        self.message = self.generateRandomDataWithFlag(self.MESSAGE_SIZE)
 
         # Flag control
         self.flagIdx = 0
@@ -46,32 +17,60 @@ class Injector:
         self.lastTimestamp = 0
 
         # Idle control
-        self.sleep = MESSAGE_SLEEP
+        self.sleep = self.MESSAGE_SLEEP
 
     def generateNewMessage(self):
         self.sentData.append(self.message)
-        self.message = generateRandomDataWithFlag(MESSAGE_SIZE)
+        self.message = self.generateRandomDataWithFlag(self.MESSAGE_SIZE)
         self.messageIdx = 0
-        self.sleep = MESSAGE_SLEEP
+        self.sleep = self.MESSAGE_SLEEP
     
     def flagCheck(self, timestamp):
         bit = timestamp % 2
-        return FLAG[self.flagIdx] == bit and self.flagIdx == (len(FLAG) - 1)
+        return self.FLAG[self.flagIdx] == bit and self.flagIdx == (len(self.FLAG) - 1)
     
     def sleepCheck(self):
         return self.sleep > 0
     
     def flagProcess(self, timestamp):
         bit = timestamp % 2
-        if FLAG[self.flagIdx] == bit:
+        if self.FLAG[self.flagIdx] == bit:
             self.flagIdx += 1
         else:
             self.flagIdx = 0
         
-        if self.flagIdx == len(FLAG):
+        if self.flagIdx == len(self.FLAG):
             self.flagIdx = 0
             self.flagInitialized = not self.flagInitialized
 
+
+    def bitBuffer(self, message):
+        count = 0
+        addZero = []
+        for idx in range(len(message)):
+            num = message[idx]
+            if count == 3 and num == 1:
+                addZero.append(idx)
+                count = 0 
+            if num == 1:
+                count += 1
+            else:
+                count = 0
+        addZero.reverse()
+        for idx in addZero:
+            message.insert(idx,0)
+
+    def generateRandomData(self, size):
+        rand = []
+        for _ in range(size):
+            rand.append(random.randint(0, 1))
+        return rand
+
+    def generateRandomDataWithFlag(self, size):
+        message = self.generateRandomData(size)
+        self.bitBuffer(message)
+        newMessage = self.FLAG + message + self.FLAG
+        return newMessage
 
     """
     Receive packet timestamp
